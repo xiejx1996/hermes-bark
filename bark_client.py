@@ -33,7 +33,7 @@ LEVELS = ("active", "timeSensitive", "critical", "passive")
 # Keys accepted by ``build_payload`` (Bark's own names, camelCase included).
 _PAYLOAD_KEYS = (
     "title", "subtitle", "body", "level", "badge", "sound", "icon", "image",
-    "group", "ttl", "url", "autoCopy", "copy", "isArchive", "id",
+    "group", "ttl", "url", "autoCopy", "copy", "isArchive", "id", "markdown",
 )
 
 _KEY_RE = re.compile(r"^[A-Za-z0-9_-]{16,64}$")

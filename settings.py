@@ -32,8 +32,10 @@ from typing import Any, Mapping, Optional
 
 try:  # package import (plugin loader)
     from .bark_client import DEFAULT_SERVER, DEFAULT_TITLE, MAX_BODY, looks_like_key
+    from .alert import Limits as AlertLimits
 except ImportError:  # direct-path import (tests)
     from bark_client import DEFAULT_SERVER, DEFAULT_TITLE, MAX_BODY, looks_like_key
+    from alert import Limits as AlertLimits
 
 PLUGIN_ID = "hermes-bark"
 
@@ -57,6 +59,9 @@ SETTING_DEFAULTS: dict[str, Any] = {
     "notify_quiet_hours": "",
     "dedupe": True,
     "allow_private_image_urls": False,
+    "alert_max_title_weight": 36,
+    "alert_collapsed_weight": 140,
+    "missing_alert": "passthrough",
 }
 
 SETTING_KEYS = tuple(SETTING_DEFAULTS)
@@ -235,6 +240,21 @@ class Settings:
     def configured(self) -> bool:
         return bool(self.devices)
 
+    @property
+    def limits(self) -> AlertLimits:
+        """Lock-screen budgets from the settings surface (tolerant of bad values)."""
+        def _int(key: str, default: int) -> int:
+            try:
+                value = int(self.values.get(key) or default)
+            except (TypeError, ValueError):
+                return default
+            return value if value > 0 else default
+
+        return AlertLimits(
+            max_title_weight=_int("alert_max_title_weight", 36),
+            collapsed_weight=_int("alert_collapsed_weight", 140),
+        )
+
     def resolve(self, target: Optional[str]) -> tuple[str, str]:
         """``("iphone", "<key>")`` for a target ref; raises :class:`TargetError`."""
         token = (target or "").strip()
@@ -331,8 +351,12 @@ def load_settings(extra: Optional[Mapping[str, Any]] = None) -> Settings:
             values[key] = default
             provenance[key] = "default"
 
-    server = str(values["server"] or "").strip() or secret("BARK_SERVER") or DEFAULT_SERVER
-    server = server.rstrip("/")
+    server = str(values["server"] or "").strip()
+    if provenance.get("server") == "default":
+        # The schema default is the public server; an env-only install
+        # (BARK_SERVER, no config.yaml entry) must still win over it.
+        server = secret("BARK_SERVER") or server
+    server = (server or DEFAULT_SERVER).rstrip("/")
 
     devices: dict[str, str] = {}
     misplaced: list[str] = []

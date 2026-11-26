@@ -65,6 +65,10 @@ class PayloadTests(unittest.TestCase):
         self.assertEqual(payload["isArchive"], 0)
         self.assertEqual(payload["id"], "7")
 
+    def test_markdown_survives_the_whitelist(self):
+        payload = bc.build_payload(body="plain", markdown="**bold**")
+        self.assertEqual(payload["markdown"], "**bold**")
+
     def test_unknown_keys_ignored(self):
         self.assertNotIn("nope", bc.build_payload(body="x", nope="y"))
 

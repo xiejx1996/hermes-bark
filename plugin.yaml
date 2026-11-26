@@ -141,4 +141,20 @@ config_schema:
     type: bool
     default: false
     label: Allow private-network image URLs
-    description: "The Bark server has to fetch the image itself; only enable this where the server can reach that network."
+    description: "The Bark app on the phone fetches the image itself; only enable this when the phone can reach that network."
+  alert_max_title_weight:
+    type: int
+    default: 36
+    label: Alert title budget (display units)
+    description: "36 ≈ 18 Chinese characters. The title is one line and iOS ellipsises it (measured: cut around 37-39 units), so keep the outcome in it."
+  alert_collapsed_weight:
+    type: int
+    default: 140
+    label: Collapsed-view budget (display units)
+    description: "What the lock screen shows before a long-press: four lines, ~140 units ≈ 70 Chinese characters (measured 84 on a current iPhone; 140 leaves room for narrower screens). A first sentence wider than this is flagged in the tool result."
+  missing_alert:
+    type: str
+    choices: [passthrough, reject]
+    default: passthrough
+    label: Text without an alert
+    description: "passthrough: send the text as the body, exactly like a plugin with no alert support. reject: refuse text that does not fit the collapsed lock screen, so an unwritten alert cannot pass silently."

@@ -61,7 +61,8 @@ def log_path() -> Optional[Path]:
 
 def record(*, source: str, ok: bool, alias: str = "", device: str = "", body: str = "",
            title: str = "", error: str = "", status: Optional[int] = None,
-           latency_ms: Optional[float] = None, message_id: str = "") -> None:
+           latency_ms: Optional[float] = None, message_id: str = "",
+           alert_source: str = "", alert_weight: Optional[int] = None) -> None:
     """Append one delivery attempt. Never raises."""
     path = log_path()
     if path is None:
@@ -79,6 +80,8 @@ def record(*, source: str, ok: bool, alias: str = "", device: str = "", body: st
         "status": status,
         "latency_ms": None if latency_ms is None else round(float(latency_ms), 1),
         "message_id": message_id,
+        "alert_source": alert_source,
+        "alert_weight": alert_weight,
     }
     line = json.dumps(entry, ensure_ascii=False)
     try:
